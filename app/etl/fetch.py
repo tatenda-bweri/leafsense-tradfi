@@ -25,6 +25,8 @@ def fetch_spx_options_data(api_url=None):
     if api_url is None:
         symbol = getattr(settings, 'API_DEFAULT_SYMBOL', '_SPX')
         base_url = getattr(settings, 'API_BASE_URL', 'https://cdn.cboe.com/api/global/delayed_quotes/options/')
+        if not symbol.endswith('.json'):
+            symbol += '.json'
         api_url = f"{base_url}{symbol}"
     
     # Implement retry logic (3 attempts)
@@ -80,18 +82,12 @@ def fetch_market_data():
         
         # Extract market data from options response
         market_data = {
-            'symbol': options_data.get('data', {}).get('option', {}).get('underlying', '_SPX'),
-            'spot_price': float(options_data.get('data', {}).get('option', {}).get('close', 0)),
-            'prev_day_close': float(options_data.get('data', {}).get('option', {}).get('prevClose', 0)),
+            'symbol': options_data.symbol,
+            'spot_price': options_data["data.current_price"][0].astype(float),
+            'prev_day_close': options_data["data.prev_day_close"][0].astype(float),
+            'price_change': options_data["data.price_change"][0].astype(float),
+            'price_change_pct': options_data["data.price_change_percent"][0].astype(float),
         }
-        
-        # Calculate price change and percentage
-        if market_data['prev_day_close'] > 0:
-            market_data['price_change'] = market_data['spot_price'] - market_data['prev_day_close']
-            market_data['price_change_pct'] = (market_data['price_change'] / market_data['prev_day_close']) * 100
-        else:
-            market_data['price_change'] = 0
-            market_data['price_change_pct'] = 0
         
         logger.info(f"Market data fetched successfully for {market_data['symbol']}")
         return market_data

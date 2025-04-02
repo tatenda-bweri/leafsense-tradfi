@@ -1,6 +1,12 @@
 """Application entry point for Django options analytics platform"""
 
+# Set up the environment for Django
 import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+import django
+django.setup()
+
 import sys
 import argparse
 import traceback
@@ -9,9 +15,6 @@ from django.core.management import execute_from_command_line
 from app.database.schema import initialize_database
 from app.utils.logging_utils import setup_logging, get_logger
 from app.etl.run import run_etl
-
-# Setup Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 def parse_args():
     """Parse command line arguments"""

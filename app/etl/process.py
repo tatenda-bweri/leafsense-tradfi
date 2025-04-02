@@ -68,7 +68,7 @@ def format_options_data(data, today_ddt, tzinfo):
     Format raw options data into usable DataFrame structure
     
     Args:
-        data: Raw options data
+        data: Raw options data (list of dictionaries)
         today_ddt: Current date/time
         tzinfo: Timezone info
         
@@ -76,91 +76,57 @@ def format_options_data(data, today_ddt, tzinfo):
         DataFrame with formatted options data
     """
     try:
-        # Convert to DataFrame if list
-        if isinstance(data, list):
-            df = pd.DataFrame(data)
-        else:
-            df = pd.DataFrame([data])
-        
-        # Create empty DataFrame if no data
-        if df.empty:
-            logger.warning("No data to format")
-            return pd.DataFrame()
-        
-        # Extract option details from each option
-        option_rows = []
-        
-        for _, row in df.iterrows():
-            # Get strikes data
-            strikes = row.get('strikes', [])
-            
-            if not strikes:
-                continue
-                
-            for strike in strikes:
-                strike_price = float(strike.get('strike', 0))
-                
-                # Process call data
-                call_data = strike.get('call', {})
-                put_data = strike.get('put', {})
-                
-                # Extract expiration date
-                expiry_str = strike.get('expiry')
-                if not expiry_str:
-                    continue
-                
-                # Parse expiry date
-                parser = DateDataParser()
-                expiry_date = parser.get_date_data(expiry_str).date_obj
-                
-                if not expiry_date:
-                    continue
-                
-                # Make timezone aware
-                expiry_date = expiry_date.replace(tzinfo=tzinfo)
-                
-                # Calculate time till expiration in years
-                time_till_exp = (expiry_date - today_ddt).total_seconds() / (365.25 * 24 * 60 * 60)
-                
-                # Create option record
-                option_row = {
-                    'expiration_date': expiry_date,
-                    'strike_price': strike_price,
-                    'time_till_exp': time_till_exp,
-                    
-                    # Call data
-                    'call_option_symbol': call_data.get('option_root', '') + call_data.get('option_ext', ''),
-                    'call_iv': float(call_data.get('iv', 0) or 0),
-                    'call_delta': float(call_data.get('delta', 0) or 0),
-                    'call_gamma': float(call_data.get('gamma', 0) or 0),
-                    'call_open_interest': int(call_data.get('open_interest', 0) or 0),
-                    'call_volume': int(call_data.get('volume', 0) or 0),
-                    
-                    # Put data
-                    'put_option_symbol': put_data.get('option_root', '') + put_data.get('option_ext', ''),
-                    'put_iv': float(put_data.get('iv', 0) or 0),
-                    'put_delta': float(put_data.get('delta', 0) or 0),
-                    'put_gamma': float(put_data.get('gamma', 0) or 0),
-                    'put_open_interest': int(put_data.get('open_interest', 0) or 0),
-                    'put_volume': int(put_data.get('volume', 0) or 0),
-                }
-                
-                option_rows.append(option_row)
-        
-        # Create DataFrame from rows
-        options_df = pd.DataFrame(option_rows)
-        
-        # Sort by expiration date and strike price
-        if not options_df.empty:
-            options_df = options_df.sort_values(['expiration_date', 'strike_price'])
-            
-        logger.info(f"Formatted {len(options_df)} options rows")
-        return options_df
-        
+        keys_to_keep = ["option", "iv", "open_interest", "volume", "delta", "gamma", "strike_price"]
+        df = pd.DataFrame([{k: d[k] for k in keys_to_keep if k in d} for d in data])
+        formatted_df = pd.concat(
+            [
+                df.rename(
+                    columns={
+                        "option": "calls",
+                        "iv": "call_iv",
+                        "open_interest": "call_open_int",
+                        "delta": "call_delta",
+                        "gamma": "call_gamma",
+                        "volume": "call_volume",
+                    }
+                ).iloc[0::2].reset_index(drop=True),
+                df.rename(
+                    columns={
+                        "option": "puts",
+                        "iv": "put_iv",
+                        "open_interest": "put_open_int",
+                        "delta": "put_delta",
+                        "gamma": "put_gamma",
+                        "volume": "put_volume",
+                    }
+                ).iloc[1::2].reset_index(drop=True),
+            ],
+            axis=1,
+        )
+        # Extract strike price from calls column using a regex
+        formatted_df["strike_price"] = (
+            formatted_df["calls"].str.extract(r"\d[A-Z](\d+)\d\d\d").astype(float)
+        )
+        # Extract expiration date from calls column
+        formatted_df["expiration_date"] = formatted_df["calls"].str.extract(r"[A-Z](\d+)")
+        formatted_df["expiration_date"] = pd.to_datetime(
+            formatted_df["expiration_date"], format="%y%m%d"
+        ).dt.tz_localize(tzinfo) + timedelta(hours=16)
+    
+        # Calculate business day counts and time till expiration in years
+        busday_counts = np.busday_count(
+            today_ddt.date(), formatted_df["expiration_date"].values.astype("datetime64[D]")
+        )
+        formatted_df["time_till_exp"] = np.where(busday_counts == 0, 1/252, busday_counts/252)
+    
+        formatted_df = formatted_df.sort_values(by=["expiration_date", "strike_price"]).reset_index(drop=True)
+        logger.info(f"Formatted {len(formatted_df)} options rows")
+        return formatted_df
+
     except Exception as e:
         logger.error(f"Error formatting options data: {str(e)}")
         raise Exception(f"Failed to format options data: {str(e)}")
-
+    
 def calculate_gamma_exposure(option_data, spot_price):
     """
     Calculate gamma exposure for options based on open interest and spot price
