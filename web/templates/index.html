@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeafSense SPX Options Analytics</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <!-- Add TradingView widget script -->
+    <script
+      type="text/javascript"
+      src="https://s3.tradingview.com/tv.js"
+    ></script>
+    <!-- Plotly.js for gamma exposure charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="dark-mode">
+    <div class="app-container">
+      <!-- Side Panel -->
+      <div class="side-panel">
+        <div class="logo-container">
+          <img src="/static/img/logo.png" alt="LeafSense Logo" class="logo" />
+        </div>
+        <nav class="side-nav">
+          <ul>
+            <li class="active">
+              <a href="#" data-panel="options-analytics">
+                <i class="fas fa-chart-line"></i>
+                <span>Options Analytics</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" data-panel="market-metrics">
+                <i class="fas fa-chart-bar"></i>
+                <span>Market Metrics</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" data-panel="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <header>
+          <div class="header-content">
+            <h1>SPX Options Dashboard</h1>
+            <div class="header-controls">
+              <button id="refresh-btn" class="btn" title="Refresh Data">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+              <button id="edit-btn" class="btn" title="Edit Layout">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button id="theme-toggle" class="btn" title="Toggle Theme">
+                <i class="fas fa-sun"></i>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div class="dashboard-container">
+          <div class="card-row">
+            <!-- Spot Card -->
+            <div class="small-card">
+              <div class="card-header">SPX Spot Price</div>
+              <div class="card-content">
+                <div class="spot-value">5667.00</div>
+                <div class="spot-timestamp">Last updated: 08:47:42 (UTC-4)</div>
+              </div>
+            </div>
+
+            <!-- Change % Card -->
+            <div class="small-card">
+              <div class="card-header">Daily Change</div>
+              <div class="card-content">
+                <div class="change-value positive">+0.02%</div>
+                <div class="change-absolute">+1.00</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-row">
+            <!-- Trading View Card -->
+            <div class="card">
+              <div class="card-header">Price Chart</div>
+              <div class="card-content" id="tradingview-container"></div>
+            </div>
+
+            <!-- Gamma Exposure Card -->
+            <div class="card">
+              <div class="card-header">
+                <div>Gamma Exposure by Strike</div>
+                <div class="card-controls">
+                  <div class="dropdown">
+                    <select id="customer-select">
+                      <option value="all">All Customers</option>
+                      <option value="retail">Retail</option>
+                      <option value="institutional">Institutional</option>
+                    </select>
+                  </div>
+                  <div class="dropdown">
+                    <select id="expiry-select">
+                      <option value="0dte">0DTE</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="all" selected>All Expiries</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="card-content" id="gamma-exposure-chart"></div>
+            </div>
+
+            <!-- Notes Card -->
+            <div class="card">
+              <div class="card-header">Trading Notes</div>
+              <div class="card-content">
+                <div class="editor-toolbar">
+                  <button class="editor-btn" data-command="bold" title="Bold">
+                    <i class="fas fa-bold"></i>
+                  </button>
+                  <button
+                    class="editor-btn"
+                    data-command="italic"
+                    title="Italic"
+                  >
+                    <i class="fas fa-italic"></i>
+                  </button>
+                  <button
+                    class="editor-btn"
+                    data-command="underline"
+                    title="Underline"
+                  >
+                    <i class="fas fa-underline"></i>
+                  </button>
+                  <button
+                    class="editor-btn"
+                    data-command="insertUnorderedList"
+                    title="Bullet List"
+                  >
+                    <i class="fas fa-list-ul"></i>
+                  </button>
+                  <select class="editor-select" data-command="fontSize">
+                    <option value="1">Small</option>
+                    <option value="3" selected>Normal</option>
+                    <option value="5">Large</option>
+                    <option value="7">Extra Large</option>
+                  </select>
+                </div>
+                <div
+                  id="notes-editor"
+                  contenteditable="true"
+                  class="editor-content"
+                >
+                  Add your trading notes here...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="/static/js/dashboard.js"></script>
+  </body>
+</html>
