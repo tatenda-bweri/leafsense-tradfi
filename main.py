@@ -73,9 +73,29 @@ def main():
                 return
                 
             elif args.command == 'server':
-                # Add runserver command and its arguments
+                # Use Django's management command directly instead of modifying sys.argv
+                from django.core.management.commands.runserver import Command as RunserverCommand
                 logger.info(f"Starting development server on {args.addr}:{args.port}")
-                sys.argv = [sys.argv[0], 'runserver', f'{args.addr}:{args.port}']
+                # Create and run the command
+                cmd = RunserverCommand()
+                options = {
+                    'addrport': f"{args.addr}:{args.port}",
+                    'use_ipv6': False,
+                    'use_reloader': True,
+                    'use_threading': True,
+                    'verbosity': 1,
+                    'use_static_handler': True,
+                    'insecure_serving': False,
+                    'skip_checks': False,  # Add missing required option
+                    'pythonpath': None,
+                    'no_color': False,
+                    'force_color': False,
+                    'settings': None,
+                    'traceback': False,
+                    'noreload': False,
+                }
+                cmd.handle(**options)
+                return
             
             elif args.command == 'django':
                 # Replace sys.argv with the Django command arguments

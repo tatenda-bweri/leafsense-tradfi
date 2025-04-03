@@ -49,7 +49,7 @@ def process_options_data(json_data, tz="America/New_York"):
         options_df = options_df[options_df['expiration_date'] > timestamp]
         
         # Calculate spot price from data if available
-        spot_price = json_data.get('data', {}).get('option', {}).get('close')
+        spot_price = json_data.get('data', {}).get('option', {}).get('current_price')
         if spot_price:
             spot_price = float(spot_price)
             

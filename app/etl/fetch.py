@@ -71,22 +71,23 @@ def fetch_spx_options_data(api_url=None):
 def fetch_market_data():
     """
     Fetch additional market data from other sources if needed
-    
+
     Returns:
         Dictionary with market data
     """
     try:
-        # For now, we'll extract market data from the options API response
-        # This could be expanded to fetch from additional sources as needed
+        # For now, we'll extract market data from the options API response.
+        # This could be expanded to fetch from additional sources as needed.
         options_data = fetch_spx_options_data()
         
-        # Extract market data from options response
+        # Safely get the data dictionary; adjust key names as appropriate.
+        data = options_data.get("data", {})
         market_data = {
-            'symbol': options_data.symbol,
-            'spot_price': options_data["data.current_price"][0].astype(float),
-            'prev_day_close': options_data["data.prev_day_close"][0].astype(float),
-            'price_change': options_data["data.price_change"][0].astype(float),
-            'price_change_pct': options_data["data.price_change_percent"][0].astype(float),
+            "symbol": options_data.get("symbol", "_SPX"),
+            "spot_price": float(data.get("current_price", [0])),
+            "prev_day_close": float(data.get("prev_day_close", [0])),
+            "price_change": float(data.get("price_change", [0])),
+            "price_change_pct": float(data.get("price_change_percent", [0])),
         }
         
         logger.info(f"Market data fetched successfully for {market_data['symbol']}")
@@ -96,9 +97,9 @@ def fetch_market_data():
         logger.error(f"Error fetching market data: {str(e)}")
         # Return default values if fetch fails
         return {
-            'symbol': '_SPX',
-            'spot_price': 0,
-            'prev_day_close': 0,
-            'price_change': 0,
-            'price_change_pct': 0
+            "symbol": "_SPX",
+            "spot_price": 0.0,
+            "prev_day_close": 0.0,
+            "price_change": 0.0,
+            "price_change_pct": 0.0
         }

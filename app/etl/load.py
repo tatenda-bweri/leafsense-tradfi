@@ -24,12 +24,12 @@ def transform_options_data(filtered_data, timestamp):
         # Process each row in the filtered data
         for _, row in filtered_data.iterrows():
             # Create call record
-            if row.get('call_option_symbol') and row.get('call_gamma') is not None:
+            if row.get('calls') and row.get('call_gamma') is not None:
                 call_record = {
                     'timestamp': timestamp,
                     'symbol': symbol,
                     'option_type': 'CALL',
-                    'option_symbol': row['call_option_symbol'],
+                    'option_symbol': row['calls'],
                     'expiration_date': row['expiration_date'],
                     'strike_price': row['strike_price'],
                     'iv': row.get('call_iv'),
@@ -43,12 +43,12 @@ def transform_options_data(filtered_data, timestamp):
                 records.append(call_record)
             
             # Create put record
-            if row.get('put_option_symbol') and row.get('put_gamma') is not None:
+            if row.get('puts') and row.get('put_gamma') is not None:
                 put_record = {
                     'timestamp': timestamp,
                     'symbol': symbol,
                     'option_type': 'PUT',
-                    'option_symbol': row['put_option_symbol'],
+                    'option_symbol': row['puts'],
                     'expiration_date': row['expiration_date'],
                     'strike_price': row['strike_price'],
                     'iv': row.get('put_iv'),
