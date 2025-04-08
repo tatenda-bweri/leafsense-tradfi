@@ -135,7 +135,7 @@ function initTradingViewWidget() {
   new TradingView.widget({
     width: "100%",
     height: "100%",
-    symbol: "SPX",
+    symbol: "SP500",
     interval: "5",
     timezone: "America/New_York",
     theme: isDarkMode ? "dark" : "light",

@@ -97,6 +97,12 @@ def main():
                 cmd.handle(**options)
                 return
             
+            # elif args.command == 'server':
+            #     # Use Django's command running mechanism
+            #     sys.argv = [sys.argv[0], 'runserver', f"{args.addr}:{args.port}"]
+            #     execute_from_command_line(sys.argv)
+            #     return
+            
             elif args.command == 'django':
                 # Replace sys.argv with the Django command arguments
                 sys.argv = [sys.argv[0]] + args.args
